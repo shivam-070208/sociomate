@@ -1,2 +1,6 @@
+cd "$(git rev-parse --show-toplevel)"
+
 bunx lint-staged
+
+bun run check-types
 
