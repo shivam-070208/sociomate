@@ -5,10 +5,10 @@
 
 ### Module Setup
 
-- [ ] Create NestJS module
-- [ ] Create controller
-- [ ] Create service
-- [ ] Register module
+- [x] Create NestJS module
+- [x] Create controller
+- [x] Create service
+- [x] Register module
 
 ### API
 
