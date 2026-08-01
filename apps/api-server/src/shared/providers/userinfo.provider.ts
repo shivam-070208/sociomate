@@ -1,15 +1,17 @@
 import { Injectable, Scope } from "@nestjs/common";
-import { User } from "@repo/db";
+import { Session, User } from "@repo/db";
+
+type SessionWithUser = Session & { user: User };
 
 @Injectable({ scope: Scope.REQUEST })
 export class UserInfoProvider {
-  private user: User | undefined;
+  private user: SessionWithUser | undefined;
 
-  setUser(user: User) {
+  setUser(user: SessionWithUser) {
     this.user = user;
   }
 
-  getUser(): User | undefined {
+  getUser(): SessionWithUser | undefined {
     return this.user;
   }
 }
