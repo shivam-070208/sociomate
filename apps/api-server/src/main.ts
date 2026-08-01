@@ -1,12 +1,17 @@
 import "dotenv/config";
 import { NestFactory } from "@nestjs/core";
 import { NestExpressApplication } from "@nestjs/platform-express";
+import { ValidationPipe } from "@nestjs/common";
 import { AppApiServerModule } from "./api-server.module";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 
 async function bootstrap() {
   const app =
     await NestFactory.create<NestExpressApplication>(AppApiServerModule);
+
+  app.useGlobalPipes(
+    new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
+  );
 
   console.log("App Name:", process.env.APP_NAME);
   app.set("trust proxy", true);

@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { PrismaService } from "@/shared/db/prisma.service";
-import { randomBytes, randomInt, scryptSync } from "node:crypto";
+import { randomBytes, randomInt, scrypt as scryptCallback } from "node:crypto";
+import { promisify } from "node:util";
 import { RegisterUserDto } from "./dto/register-user.dto";
 import { UserDao } from "@/daos/user.dao";
 
@@ -11,10 +12,18 @@ export class AuthenticationService {
     private readonly userDao: UserDao,
   ) {}
 
-  private hashPassword(password: string) {
+  private async hashPassword(password: string) {
     const salt = randomBytes(16).toString("hex");
-    const derived = scryptSync(password, salt, 64).toString("hex");
-    return `${salt}:${derived}`;
+    const scryptAsync = promisify(scryptCallback);
+    const derived = (await scryptAsync(password, salt, 64)) as Buffer;
+    return `${salt}:${derived.toString("hex")}`;
+  }
+
+  private async hashOtp(otp: string) {
+    const salt = randomBytes(16).toString("hex");
+    const scryptAsync = promisify(scryptCallback);
+    const derived = (await scryptAsync(otp, salt, 64)) as Buffer;
+    return `${salt}:${derived.toString("hex")}`;
   }
 
   private generateOtpCode() {
@@ -26,12 +35,15 @@ export class AuthenticationService {
     this.validateField(email, "Email is required");
     this.validateField(password, "Password is required");
     const otp = this.generateOtpCode();
-    const hashedPassword = this.hashPassword(password);
+    const hashedPassword = await this.hashPassword(password);
+    const otpHash = await this.hashOtp(otp);
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
     const result = this.userDao.createUserWithEmailProvider({
       email,
       password: hashedPassword,
       name,
-      otp,
+      otpHash,
+      expiresAt: otpExpiresAt,
     });
     return result;
   }

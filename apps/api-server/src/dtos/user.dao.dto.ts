@@ -5,7 +5,6 @@ import {
   IsOptional,
   IsString,
   MinLength,
-  Length,
 } from "class-validator";
 
 export class CreateUserWithEmailProviderDto {
@@ -33,10 +32,14 @@ export class CreateUserWithEmailProviderDto {
 
   @ApiPropertyOptional({
     example: "482913",
-    description: "OTP code for email verification/login",
+    description: "Derived OTP hash for email verification/login",
   })
-  @IsOptional()
   @IsString()
-  @Length(6, 6)
-  declare otp: string;
+  declare otpHash: string;
+
+  @ApiPropertyOptional({
+    example: "2026-08-02T00:00:00.000Z",
+    description: "OTP expiry timestamp",
+  })
+  declare expiresAt: Date;
 }
