@@ -1,17 +1,17 @@
 model User {
-  id            String    @id @default(uuid())
+  id String @id @default(uuid())
 
-  email         String    @unique
-  name          String?
-  avatar        String?
+  email  String  @unique
+  name   String?
+  avatar String?
 
-  emailVerified Boolean   @default(false)
+  emailVerified Boolean @default(false)
 
-  accounts      Account[]
-  sessions      Session[]
+  accounts Account[]
+  sessions Session[]
 
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("users")
 }

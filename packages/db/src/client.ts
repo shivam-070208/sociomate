@@ -1,4 +1,4 @@
-import { PrismaClient } from "./generated/prisma/client";
+import { PrismaClient } from "./generated/prisma/client.ts";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { readReplicas } from "@prisma/extension-read-replicas";
 
@@ -13,14 +13,6 @@ const readReplicaAdapter = new PrismaPg({
 
 const readReplicaClient = new PrismaClient({ adapter: readReplicaAdapter });
 
-const db = mainClient.$extends(readReplicas({ replicas: [readReplicaClient] }));
-
-db.$connect()
-  .then(() => {
-    console.log("Connected to the database successfully.");
-  })
-  .catch((error) => {
-    console.error("Error connecting to the database:", error);
-  });
-
-export default db;
+export const prisma = mainClient.$extends(
+  readReplicas({ replicas: [readReplicaClient] }),
+);

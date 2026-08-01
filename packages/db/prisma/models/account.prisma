@@ -1,21 +1,28 @@
+enum Providers {
+  GITHUB
+  EMAIL
+  GOOGLE
+}
+
 model Account {
-  id                String   @id @default(uuid())
+  id String @id @default(uuid())
 
-  userId            String
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  provider          String
-  providerAccountId String
+  provider          Providers
+  providerAccountId String?
 
+  passwordHash String?
 
-  passwordHash      String?
+  accessToken  String?
+  refreshToken String?
+  expiresAt    DateTime?
 
-  accessToken       String?
-  refreshToken      String?
-  expiresAt         DateTime?
+  otp Otp[]
 
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([provider, providerAccountId])
   @@index([userId])
