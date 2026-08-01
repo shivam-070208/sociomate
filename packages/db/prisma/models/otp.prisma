@@ -1,0 +1,12 @@
+model Otp {
+  id       String  @id @default(cuid())
+  otp      String
+  isActive Boolean @default(true)
+
+  accountId String
+
+  account   Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("otp")
+}

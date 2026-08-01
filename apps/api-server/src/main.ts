@@ -1,11 +1,10 @@
+import "dotenv/config";
 import { NestFactory } from "@nestjs/core";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import { AppApiServerModule } from "./api-server.module";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import "dotenv/config";
 
 async function bootstrap() {
-  console.log("App Name:", process.env.APP_NAME);
   const app =
     await NestFactory.create<NestExpressApplication>(AppApiServerModule);
 
@@ -13,12 +12,12 @@ async function bootstrap() {
   app.set("trust proxy", true);
 
   const appName = process.env.APP_NAME || "unknown-app";
-  const swaggerPath = "skalebot-api-docs";
+  const swaggerPath = "Sociomate-api-docs";
   const server = "/";
 
   const config = new DocumentBuilder()
-    .setTitle(`Skalebot API for ${appName}`)
-    .setDescription(`Skalebot ${appName} API description`)
+    .setTitle(`Sociomate API for ${appName}`)
+    .setDescription(`Sociomate ${appName} API description`)
     .setVersion("1.0")
     .addBearerAuth(
       {
