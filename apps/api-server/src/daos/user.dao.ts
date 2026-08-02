@@ -45,4 +45,22 @@ export class UserDao {
       throw error;
     }
   }
+
+  public async getUserByEmail(email: string) {
+    return await this.prisma.client.user.findFirst({
+      where: {
+        email: {
+          equals: email,
+        },
+      },
+      include: {
+        accounts: {
+          where: {
+            provider: Providers.EMAIL,
+          },
+          take: 1,
+        },
+      },
+    });
+  }
 }

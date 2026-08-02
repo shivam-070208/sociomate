@@ -11,15 +11,15 @@ export class RegisterUserDto {
   @ApiProperty({ example: "user@example.com" })
   @IsEmail()
   @IsNotEmpty()
-  email!: string;
+  declare email: string;
 
   @ApiProperty({ example: "StrongP@ssw0rd" })
   @IsString()
   @MinLength(8)
-  password!: string;
+  declare password: string;
 
   @ApiProperty({ example: "Jane Doe", required: false })
   @IsOptional()
   @IsString()
-  name?: string;
+  declare name?: string;
 }
