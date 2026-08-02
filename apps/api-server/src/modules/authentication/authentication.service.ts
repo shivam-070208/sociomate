@@ -1,11 +1,17 @@
 import { BadRequestException, Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
-import { randomBytes, randomInt, scrypt as scryptCallback } from "node:crypto";
+import {
+  randomBytes,
+  randomInt,
+  scrypt as scryptCallback,
+  timingSafeEqual,
+} from "node:crypto";
 import { promisify } from "node:util";
 import { RegisterUserDto } from "./dto/register-user.dto";
 import { UserDao } from "@/daos/user.dao";
 import { SessionDao } from "@/daos/session.dao";
 import { UserInfoProvider } from "@/shared/providers/userinfo.provider";
+import { LoginUserDto } from "./dto/login-user.dto";
 
 @Injectable()
 export class AuthenticationService {
@@ -28,6 +34,20 @@ export class AuthenticationService {
     const scryptAsync = promisify(scryptCallback);
     const derived = (await scryptAsync(otp, salt, 64)) as Buffer;
     return `${salt}:${derived.toString("hex")}`;
+  }
+
+  private async verifyPassword(password: string, storedPassword: string) {
+    const [salt, key] = storedPassword.split(":");
+    if (!salt || !key) {
+      return false;
+    }
+    const scryptAsync = promisify(scryptCallback);
+    const derived = (await scryptAsync(password, salt, 64)) as Buffer;
+    const keyBuffer = Buffer.from(key, "hex");
+    if (keyBuffer.length !== derived.length) {
+      return false;
+    }
+    return timingSafeEqual(derived, keyBuffer);
   }
 
   private generateOtpCode() {
@@ -54,6 +74,49 @@ export class AuthenticationService {
       expiresAt: otpExpiresAt,
     });
 
+    const refreshToken = this.generateAuthToken();
+    const sessionExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    const session = await this.sessionDao.createSession({
+      userId: user.id,
+      expiresAt: sessionExpiresAt,
+      refreshToken,
+    });
+    const accessToken = await this.jwtService.signAsync({
+      sub: user.id,
+      sessionId: session.id,
+    });
+    return {
+      user,
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  public async loginUser(loginUserDto: LoginUserDto) {
+    const { email, password } = loginUserDto;
+    const user = await this.userDao.getUserByEmail(email);
+    this.validateField(user, "Invalid Credentials");
+    const accounts = user?.accounts[0];
+    this.validateField(
+      accounts,
+      "User has no password set , try forgot passwd and set a new password",
+    );
+    this.validateField(
+      accounts?.passwordHash,
+      "User has no password set , try forgot passwd and set a new password",
+    );
+
+    const isVerified = await this.verifyPassword(
+      password,
+      accounts?.passwordHash,
+    );
+
+    if (!isVerified) {
+      throw new BadRequestException("Invalid credentials");
+    }
+
+    delete (user as unknown as { accounts?: unknown }).accounts;
     const refreshToken = this.generateAuthToken();
     const sessionExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
@@ -101,7 +164,7 @@ export class AuthenticationService {
     }
   }
 
-  private validateField(value: unknown, message: string) {
+  private validateField(value: unknown, message: string): asserts value {
     if (!value) {
       throw new BadRequestException(message);
     }

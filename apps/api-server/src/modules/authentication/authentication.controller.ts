@@ -3,6 +3,7 @@ import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { AuthenticationService } from "./authentication.service";
 import { RegisterUserDto } from "./dto/register-user.dto";
 import { AuthGuard } from "@/shared/guards/auth.guard";
+import { LoginUserDto } from "./dto/login-user.dto";
 
 @Controller("auth")
 @ApiTags("Authentication")
@@ -27,8 +28,8 @@ export class AuthenticationController {
   }
 
   @Post("/login")
-  public login() {
-    return { message: "Login endpoint not implemented yet." };
+  public async login(@Body() loginUserDto: LoginUserDto) {
+    return await this.authenticationService.loginUser(loginUserDto);
   }
 
   @Post("/forgotpassword")
