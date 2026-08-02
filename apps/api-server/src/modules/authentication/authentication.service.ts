@@ -43,7 +43,11 @@ export class AuthenticationService {
     }
     const scryptAsync = promisify(scryptCallback);
     const derived = (await scryptAsync(password, salt, 64)) as Buffer;
-    return timingSafeEqual(derived, Buffer.from(key, "hex"));
+    const keyBuffer = Buffer.from(key, "hex");
+    if (keyBuffer.length !== derived.length) {
+      return false;
+    }
+    return timingSafeEqual(derived, keyBuffer);
   }
 
   private generateOtpCode() {
