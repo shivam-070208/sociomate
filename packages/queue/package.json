@@ -1,0 +1,27 @@
+{
+  "name": "@repo/queue",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+   "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -w -p tsconfig.json"
+  },
+  "private": true,
+  "dependencies": {
+    "amqplib": "^0.10.3",
+    "dotenv": "^17.4.2"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^11.0.0",
+    "typescript": "^5"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.10.8",
+    "@types/node": "^20.11.0"
+  }
+}

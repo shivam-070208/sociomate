@@ -6,11 +6,14 @@ import { AuthenticationController } from "./authentication.controller";
 import { JwtStrategy } from "./jwt.strategy";
 import { PrismaModule } from "@/shared/db/prisma.module";
 import { UserDao } from "@/daos/user.dao";
+import { OtpDao } from "@/daos/otp.dao";
 import { SessionDao } from "@/daos/session.dao";
+import { RabbitModule } from "@repo/queue";
 
 @Module({
   imports: [
     PrismaModule,
+    RabbitModule,
     PassportModule.register({ defaultStrategy: "jwt" }),
     JwtModule.registerAsync({
       useFactory: () => ({
@@ -20,7 +23,7 @@ import { SessionDao } from "@/daos/session.dao";
     }),
   ],
   controllers: [AuthenticationController],
-  providers: [AuthenticationService, UserDao, SessionDao, JwtStrategy],
+  providers: [AuthenticationService, UserDao, OtpDao, SessionDao, JwtStrategy],
   exports: [AuthenticationService],
 })
 export class AuthenticationModule {}

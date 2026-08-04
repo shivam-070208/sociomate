@@ -8,18 +8,23 @@ import {
 } from "node:crypto";
 import { promisify } from "node:util";
 import { RegisterUserDto } from "./dto/register-user.dto";
+import { ResendOtpDto } from "./dto/resend-otp.dto";
 import { UserDao } from "@/daos/user.dao";
+import { OtpDao } from "@/daos/otp.dao";
 import { SessionDao } from "@/daos/session.dao";
 import { UserInfoProvider } from "@/shared/providers/userinfo.provider";
 import { LoginUserDto } from "./dto/login-user.dto";
+import { RabbitPublisher } from "@repo/queue";
 
 @Injectable()
 export class AuthenticationService {
   constructor(
     private readonly userDao: UserDao,
+    private readonly otpDao: OtpDao,
     private readonly jwtService: JwtService,
     private readonly sessionDao: SessionDao,
     private readonly userInfoProvider: UserInfoProvider,
+    private readonly rabbitPublisher: RabbitPublisher,
   ) {}
 
   private async hashPassword(password: string) {
@@ -74,6 +79,13 @@ export class AuthenticationService {
       expiresAt: otpExpiresAt,
     });
 
+    await this.rabbitPublisher.publishOtp({
+      userId: user.id,
+      email,
+      otp,
+      expiresAt: otpExpiresAt.toISOString(),
+    });
+
     const refreshToken = this.generateAuthToken();
     const sessionExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
@@ -91,6 +103,33 @@ export class AuthenticationService {
       accessToken,
       refreshToken,
     };
+  }
+
+  public async resendOtp(resendOtpDto: ResendOtpDto) {
+    const { email } = resendOtpDto;
+    this.validateField(email, "Email is required");
+
+    const user = await this.userDao.getUserByEmail(email);
+    this.validateField(user, "User not found");
+
+    const account = user.accounts?.[0];
+    this.validateField(account, "User does not have an email account");
+
+    await this.otpDao.deactivateOtpsForAccount(account.id);
+
+    const otp = this.generateOtpCode();
+    const otpHash = await this.hashOtp(otp);
+    const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await this.otpDao.createOtpForAccount(account.id, otpHash, otpExpiresAt);
+    await this.rabbitPublisher.publishOtp({
+      userId: user.id,
+      email,
+      otp,
+      expiresAt: otpExpiresAt.toISOString(),
+    });
+
+    return { message: "OTP resent successfully." };
   }
 
   public async loginUser(loginUserDto: LoginUserDto) {

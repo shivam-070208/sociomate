@@ -59,6 +59,9 @@ export class UserDao {
             provider: Providers.EMAIL,
           },
           take: 1,
+          include: {
+            otp: true,
+          },
         },
       },
     });

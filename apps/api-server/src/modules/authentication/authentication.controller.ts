@@ -2,6 +2,7 @@ import { Body, Controller, Get, Post, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import { AuthenticationService } from "./authentication.service";
 import { RegisterUserDto } from "./dto/register-user.dto";
+import { ResendOtpDto } from "./dto/resend-otp.dto";
 import { AuthGuard } from "@/shared/guards/auth.guard";
 import { LoginUserDto } from "./dto/login-user.dto";
 
@@ -13,6 +14,11 @@ export class AuthenticationController {
   @Post("/otp/verify/user/:userId")
   public verifyOtp() {
     return { message: "OTP verification not implemented yet." };
+  }
+
+  @Post("/otp")
+  public async resendOtp(@Body() resendOtpDto: ResendOtpDto) {
+    return this.authenticationService.resendOtp(resendOtpDto);
   }
 
   @Get("/me")
