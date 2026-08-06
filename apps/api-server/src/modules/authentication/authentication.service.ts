@@ -9,6 +9,7 @@ import {
 import { promisify } from "node:util";
 import { RegisterUserDto } from "./dto/register-user.dto";
 import { ResendOtpDto } from "./dto/resend-otp.dto";
+import { VerifyOtpDto } from "./dto/verify-otp.dto";
 import { UserDao } from "@/daos/user.dao";
 import { OtpDao } from "@/daos/otp.dao";
 import { SessionDao } from "@/daos/session.dao";
@@ -41,7 +42,7 @@ export class AuthenticationService {
     return `${salt}:${derived.toString("hex")}`;
   }
 
-  private async verifyPassword(password: string, storedPassword: string) {
+  private async verifyHash(password: string, storedPassword: string) {
     const [salt, key] = storedPassword.split(":");
     if (!salt || !key) {
       return false;
@@ -118,6 +119,7 @@ export class AuthenticationService {
     await this.otpDao.deactivateOtpsForAccount(account.id);
 
     const otp = this.generateOtpCode();
+    console.log(otp);
     const otpHash = await this.hashOtp(otp);
     const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
@@ -130,6 +132,41 @@ export class AuthenticationService {
     });
 
     return { message: "OTP resent successfully." };
+  }
+
+  public async verifyOtp(email: string, verifyOtpDto: VerifyOtpDto) {
+    this.validateField(email, "Email  ID is required");
+    this.validateField(verifyOtpDto?.otp, "OTP is required");
+
+    const user = await this.userDao.getUserByEmail(email);
+    this.validateField(user, "User not found");
+
+    const account = user.accounts?.[0];
+    this.validateField(account, "User does not have an email account");
+
+    const otpRecord = account?.otp[0];
+    this.validateField(otpRecord, "OTP not found or expired");
+
+    const isOtpValid = await this.verifyHash(verifyOtpDto.otp, otpRecord.otp);
+    if (!isOtpValid) {
+      throw new BadRequestException("Invalid OTP");
+    }
+
+    await this.userDao.verifyEmailAndDeactivateOtp(user.id, otpRecord.id);
+
+    const otpVerifiedToken = await this.jwtService.signAsync(
+      {
+        sub: user.id,
+        otpVerified: true,
+      },
+      { expiresIn: "2m" },
+    );
+
+    return {
+      message: "OTP verified successfully.",
+      otpVerifiedToken,
+      expiresAt: new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+    };
   }
 
   public async loginUser(loginUserDto: LoginUserDto) {
@@ -146,10 +183,7 @@ export class AuthenticationService {
       "User has no password set , try forgot passwd and set a new password",
     );
 
-    const isVerified = await this.verifyPassword(
-      password,
-      accounts?.passwordHash,
-    );
+    const isVerified = await this.verifyHash(password, accounts?.passwordHash);
 
     if (!isVerified) {
       throw new BadRequestException("Invalid credentials");

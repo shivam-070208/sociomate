@@ -1,7 +1,11 @@
 import { CreateUserWithEmailProviderDto } from "@/dtos/user.dao.dto";
 import { PrismaService } from "@/shared/db/prisma.service";
 import { Prisma } from "@repo/db";
-import { ConflictException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from "@nestjs/common";
 import { Providers } from "@repo/db";
 
 @Injectable()
@@ -60,10 +64,45 @@ export class UserDao {
           },
           take: 1,
           include: {
-            otp: true,
+            otp: {
+              where: {
+                isActive: true,
+                expiresAt: {
+                  gte: new Date(),
+                },
+              },
+            },
           },
         },
       },
+    });
+  }
+  public async verifyEmailAndDeactivateOtp(userId: string, otpId: string) {
+    return await this.prisma.client.$transaction(async (tx) => {
+      const consumedOtp = await tx.otp.updateMany({
+        where: {
+          id: otpId,
+          isActive: true,
+        },
+        data: {
+          isActive: false,
+        },
+      });
+
+      if (consumedOtp.count === 0) {
+        throw new BadRequestException("OTP already consumed");
+      }
+
+      const user = await tx.user.update({
+        where: {
+          id: userId,
+        },
+        data: {
+          emailVerified: true,
+        },
+      });
+
+      return user;
     });
   }
 }
