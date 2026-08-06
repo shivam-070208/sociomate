@@ -16,7 +16,6 @@ import { SessionDao } from "@/daos/session.dao";
 import { UserInfoProvider } from "@/shared/providers/userinfo.provider";
 import { LoginUserDto } from "./dto/login-user.dto";
 import { RabbitPublisher } from "@repo/queue";
-import { AccountDao } from "@/daos/account.dao";
 
 @Injectable()
 export class AuthenticationService {
@@ -27,7 +26,6 @@ export class AuthenticationService {
     private readonly sessionDao: SessionDao,
     private readonly userInfoProvider: UserInfoProvider,
     private readonly rabbitPublisher: RabbitPublisher,
-    private readonly accountDao: AccountDao,
   ) {}
 
   private async hashPassword(password: string) {
@@ -154,7 +152,7 @@ export class AuthenticationService {
       throw new BadRequestException("Invalid OTP");
     }
 
-    await this.accountDao.verifyEmailAndDeactivateOtps(account.id);
+    await this.userDao.verifyEmailAndDeactivateOtp(user.id, otpRecord.id);
 
     const otpVerifiedToken = await this.jwtService.signAsync(
       {
