@@ -60,7 +60,11 @@ export class UserDao {
           },
           take: 1,
           include: {
-            otp: true,
+            otp: {
+              where: {
+                isActive: true,
+              },
+            },
           },
         },
       },
