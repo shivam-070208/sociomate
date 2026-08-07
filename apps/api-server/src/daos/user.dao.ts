@@ -128,6 +128,7 @@ export class UserDao {
             create: {
               provider: Providers.EMAIL,
               passwordHash: newPassword,
+              providerAccountId: userEmail,
             },
             update: {
               passwordHash: newPassword,
