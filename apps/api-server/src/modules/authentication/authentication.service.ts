@@ -16,6 +16,7 @@ import { SessionDao } from "@/daos/session.dao";
 import { UserInfoProvider } from "@/shared/providers/userinfo.provider";
 import { LoginUserDto } from "./dto/login-user.dto";
 import { RabbitPublisher } from "@repo/queue";
+import { ResetPasswordDto } from "./dto/reset-password.dto";
 
 @Injectable()
 export class AuthenticationService {
@@ -156,7 +157,7 @@ export class AuthenticationService {
 
     const otpVerifiedToken = await this.jwtService.signAsync(
       {
-        sub: user.id,
+        sub: user.email,
         otpVerified: true,
       },
       { expiresIn: "2m" },
@@ -208,9 +209,32 @@ export class AuthenticationService {
       refreshToken,
     };
   }
+
   public getProfile() {
     return this.userInfoProvider.getUser();
   }
+
+  public async resetPassword(
+    resetPasswordDto: ResetPasswordDto,
+    userEmail: string,
+  ) {
+    this.validateField(userEmail, "Invalid Credentials");
+    this.validateField(
+      resetPasswordDto?.newpassword,
+      "new password required to reset",
+    );
+
+    const passwordHash = await this.hashPassword(resetPasswordDto.newpassword);
+
+    await this.userDao.findAndUpsertPasswordByEmail(userEmail, passwordHash);
+
+    return {
+      message:
+        "Password update successfully, now you can login with new credentials",
+      status: "200",
+    };
+  }
+
   public async validateToken(token: string) {
     try {
       const decryptedToken = await this.jwtService.verifyAsync<{

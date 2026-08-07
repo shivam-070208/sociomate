@@ -33,6 +33,15 @@ async function bootstrap() {
       },
       "access-token",
     )
+    .addBearerAuth(
+      {
+        type: "apiKey",
+        bearerFormat: "JWT",
+        name: "OTPVefiedToken",
+        in: "header",
+      },
+      "otp-verify-token",
+    )
     .addServer(server, "Default server")
     .build();
 
