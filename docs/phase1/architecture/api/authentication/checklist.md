@@ -21,24 +21,24 @@
 
 ### Database
 
-- [ ] Create User model
-- [ ] Create Account model
-- [ ] Create Session model
-- [ ] Create Prisma migration
+- [x] Create User model
+- [x] Create Account model
+- [x] Create Session model
+- [x] Create Prisma migration
 
 ### Email Authentication
 
-- [ ] Register API
-- [ ] Login API
-- [ ] Password hashing
-- [ ] Credential validation
+- [x] Register API
+- [x] Login API
+- [x] Password hashing
+- [x] Credential validation
 
 ### Token System
 
-- [ ] JWT Access Token
-- [ ] Refresh Token
+- [x] JWT Access Token
+- [x] Refresh Token
 - [ ] Token rotation
-- [ ] Token validation
+- [x] Token validation
 
 ### OAuth
 
@@ -48,8 +48,8 @@
 
 ### Security
 
-- [ ] Authentication guards
-- [ ] Request validation
+- [x] Authentication guards
+- [x] Request validation
 - [ ] Rate limiting
 - [ ] Error handling
 
