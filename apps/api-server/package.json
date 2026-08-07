@@ -70,8 +70,12 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
+    "rootDir": ".",
     "testRegex": ".*\\.spec\\.ts$",
+    "extensionsToTreatAsEsm": [".ts"],
+    "moduleNameMapper": {
+      "^@\\/(.*)$": "<rootDir>/src/$1"
+    },
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
     },
