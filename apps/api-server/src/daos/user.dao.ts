@@ -27,6 +27,7 @@ export class UserDao {
             create: {
               provider: Providers.EMAIL,
               passwordHash: password,
+              providerAccountId: email,
               otp: {
                 create: {
                   otp: otpHash,
@@ -77,6 +78,7 @@ export class UserDao {
       },
     });
   }
+
   public async verifyEmailAndDeactivateOtp(userId: string, otpId: string) {
     return await this.prisma.client.$transaction(async (tx) => {
       const consumedOtp = await tx.otp.updateMany({
@@ -103,6 +105,37 @@ export class UserDao {
       });
 
       return user;
+    });
+  }
+
+  public async findAndUpsertPasswordByEmail(
+    userEmail: string,
+    newPassword: string,
+  ) {
+    return await this.prisma.client.user.update({
+      where: {
+        email: userEmail,
+      },
+      data: {
+        accounts: {
+          upsert: {
+            where: {
+              provider_providerAccountId: {
+                provider: Providers.EMAIL,
+                providerAccountId: userEmail,
+              },
+            },
+            create: {
+              provider: Providers.EMAIL,
+              passwordHash: newPassword,
+              providerAccountId: userEmail,
+            },
+            update: {
+              passwordHash: newPassword,
+            },
+          },
+        },
+      },
     });
   }
 }
