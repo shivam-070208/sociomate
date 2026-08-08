@@ -120,7 +120,6 @@ export class AuthenticationService {
     await this.otpDao.deactivateOtpsForAccount(account.id);
 
     const otp = this.generateOtpCode();
-    console.log(otp);
     const otpHash = await this.hashOtp(otp);
     const otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
 
