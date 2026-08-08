@@ -1,5 +1,5 @@
 import {
-  ForbiddenException,
+  BadRequestException,
   Injectable,
   NotFoundException,
 } from "@nestjs/common";
@@ -13,6 +13,7 @@ export class WorkspaceService {
 
   public async createWorkspace(userId: string, dto: CreateWorkspaceDto) {
     const slug = dto.slug ?? this.toSlug(dto.name);
+    this.validateField(slug, "Workspace name must produce a valid slug");
 
     return await this.workspaceDao.createWorkspace({
       name: dto.name,
@@ -28,11 +29,8 @@ export class WorkspaceService {
 
   public async getWorkspace(userId: string, slug: string) {
     const workspace = await this.workspaceDao.getWorkspaceBySlug(slug);
-    if (!workspace) {
+    if (!workspace || workspace.ownerId !== userId) {
       throw new NotFoundException("Workspace not found");
-    }
-    if (workspace.ownerId !== userId) {
-      throw new ForbiddenException("You do not own this workspace");
     }
     return workspace;
   }
@@ -42,15 +40,12 @@ export class WorkspaceService {
     slug: string,
     dto: UpdateWorkspaceDto,
   ) {
-    const workspace = await this.workspaceDao.getWorkspaceBySlug(slug);
-    if (!workspace) {
-      throw new NotFoundException("Workspace not found");
-    }
-    if (workspace.ownerId !== userId) {
-      throw new ForbiddenException("You do not own this workspace");
+    if (dto.slug !== undefined) {
+      const slugToUpdate = this.toSlug(dto.slug);
+      this.validateField(slugToUpdate, "Slug must produce a valid value");
     }
 
-    return await this.workspaceDao.updateWorkspace(slug, {
+    return await this.workspaceDao.updateWorkspace(slug, userId, {
       name: dto.name,
       slug: dto.slug,
       logo: dto.logo,
@@ -58,16 +53,14 @@ export class WorkspaceService {
   }
 
   public async deleteWorkspace(userId: string, slug: string) {
-    const workspace = await this.workspaceDao.getWorkspaceBySlug(slug);
-    if (!workspace) {
-      throw new NotFoundException("Workspace not found");
-    }
-    if (workspace.ownerId !== userId) {
-      throw new ForbiddenException("You do not own this workspace");
-    }
-
-    await this.workspaceDao.deleteWorkspace(slug);
+    await this.workspaceDao.deleteWorkspace(slug, userId);
     return { message: "Workspace deleted successfully" };
+  }
+
+  private validateField(value: unknown, message: string): asserts value {
+    if (!value) {
+      throw new BadRequestException(message);
+    }
   }
 
   private toSlug(name: string): string {

@@ -1,6 +1,10 @@
 import { PrismaService } from "@/shared/db/prisma.service";
 import { Prisma } from "@repo/db";
-import { ConflictException, Injectable } from "@nestjs/common";
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from "@nestjs/common";
 
 @Injectable()
 export class WorkspaceDao {
@@ -39,6 +43,7 @@ export class WorkspaceDao {
 
   public async updateWorkspace(
     slug: string,
+    ownerId: string,
     data: { name?: string; slug?: string; logo?: string },
   ) {
     const updateData: { name?: string; slug?: string; logo?: string } = {};
@@ -47,11 +52,19 @@ export class WorkspaceDao {
     if (data.logo !== undefined) updateData.logo = data.logo;
 
     try {
-      return await this.prisma.client.workspace.update({
-        where: { slug },
+      const result = await this.prisma.client.workspace.updateMany({
+        where: { slug, ownerId },
         data: updateData,
       });
+      if (result.count === 0) {
+        throw new NotFoundException("Workspace not found");
+      }
+      const lookupSlug = data.slug ?? slug;
+      return await this.prisma.client.workspace.findUnique({
+        where: { slug: lookupSlug },
+      });
     } catch (error) {
+      if (error instanceof NotFoundException) throw error;
       const prismaError = error as Prisma.PrismaClientKnownRequestError;
       if (
         prismaError instanceof Prisma.PrismaClientKnownRequestError &&
@@ -63,7 +76,12 @@ export class WorkspaceDao {
     }
   }
 
-  public async deleteWorkspace(slug: string) {
-    return await this.prisma.client.workspace.delete({ where: { slug } });
+  public async deleteWorkspace(slug: string, ownerId: string) {
+    const result = await this.prisma.client.workspace.deleteMany({
+      where: { slug, ownerId },
+    });
+    if (result.count === 0) {
+      throw new NotFoundException("Workspace not found");
+    }
   }
 }
