@@ -565,24 +565,23 @@ To prevent abuse, consider implementing:
 ## Folder Structure
 
 ```text
-workspace/
-├── controllers/
-│   └── workspace.controller.ts
-│
-├── services/
-│   └── workspace.service.ts
-│
+src/
 ├── daos/
 │   └── workspace.dao.ts
 │
-├── dto/
-│   ├── create-workspace.dto.ts
-│   └── update-workspace.dto.ts
-│
-├── validators/
-│   └── workspace.validator.ts
-│
-└── workspace.module.ts
+└── modules/
+    └── workspace/
+        ├── controllers/
+        │   └── workspace.controller.ts
+        │
+        ├── services/
+        │   └── workspace.service.ts
+        │
+        ├── dto/
+        │   ├── create-workspace.dto.ts
+        │   └── update-workspace.dto.ts
+        │
+        └── workspace.module.ts
 ```
 
 ---
