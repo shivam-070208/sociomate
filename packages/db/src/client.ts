@@ -1,4 +1,4 @@
-import { PrismaClient } from "./generated/prisma/client.ts";
+import { PrismaClient } from ./generated/prisma/client.ts";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { readReplicas } from "@prisma/extension-read-replicas";
 
