@@ -1,0 +1,35 @@
+enum SocialAccountProvider {
+  INSTAGRAM
+  WHATSAPP
+  TELEGRAM
+}
+
+enum SocialAccountStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
+  DISCONNECTED
+}
+
+model SocialAccount {
+  id        String   @id @default(cuid())
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  provider          SocialAccountProvider
+  providerAccountId String?
+  username          String?
+  displayName       String?
+
+  accessToken     String?
+  refreshToken    String?
+  tokenExpiresAt  DateTime?
+
+  status SocialAccountStatus @default(ACTIVE)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@map("social_accounts")
+}
