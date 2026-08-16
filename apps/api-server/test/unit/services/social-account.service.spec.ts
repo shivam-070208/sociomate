@@ -4,7 +4,7 @@ import { SocialAccountProvider, SocialAccountStatus } from "@repo/db";
 import { SocialAccountService } from "@/modules/social-account/services/social-account.service";
 import { SocialAccountDao } from "@/daos/social-account.dao";
 import { WorkspaceService } from "@/modules/workspace/services/workspace.service";
-import { SocialAccountProviderResolver } from "@/modules/social-account/services/providers/social-account-provider.resolver";
+import { SocialAccountProviderResolver } from "@/shared/providers/social-account-providers/social-account-provider.resolver";
 import { ConnectSocialAccountDto } from "@/modules/social-account/dto/connect-social-account.dto";
 import { UpdateSocialAccountDto } from "@/modules/social-account/dto/update-social-account.dto";
 
