@@ -8,7 +8,7 @@ import { SocialAccountDao } from "@/daos/social-account.dao";
 import { SocialAccount } from "@repo/db";
 import { ConnectSocialAccountDto } from "../dto/connect-social-account.dto";
 import { UpdateSocialAccountDto } from "../dto/update-social-account.dto";
-import { SocialAccountProviderResolver } from "./providers/social-account-provider.resolver";
+import { SocialAccountProviderResolver } from "@/shared/providers/social-account-providers/social-account-provider.resolver";
 
 type SafeSocialAccount = {
   id: string;
