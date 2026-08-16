@@ -8,7 +8,17 @@ import {
   Post,
   UseGuards,
 } from "@nestjs/common";
-import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiCreatedResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from "@nestjs/swagger";
 import { AuthGuard } from "@/shared/guards/auth.guard";
 import { UserInfoProvider } from "@/shared/providers/userinfo.provider";
 import { SocialAccountService } from "../services/social-account.service";
@@ -31,6 +41,21 @@ export class SocialAccountController {
   }
 
   @Post("connect")
+  @ApiOperation({
+    summary: "Connect a social account",
+    description:
+      "Connects a new social account (e.g. Telegram, WhatsApp, Instagram) to the workspace by validating the provider credentials and storing the account. Credentials are never returned in responses.",
+  })
+  @ApiCreatedResponse({
+    description: "Social account connected; safe account data returned.",
+  })
+  @ApiBadRequestResponse({
+    description: "Unsupported provider or invalid payload.",
+  })
+  @ApiConflictResponse({
+    description: "The social account is already connected to this workspace.",
+  })
+  @ApiUnauthorizedResponse({ description: "Missing or invalid access token." })
   public async connectSocialAccount(
     @Param("workspaceslug") workspaceslug: string,
     @Body() connectSocialAccountDto: ConnectSocialAccountDto,
@@ -43,6 +68,15 @@ export class SocialAccountController {
   }
 
   @Get()
+  @ApiOperation({
+    summary: "List connected social accounts",
+    description:
+      "Returns all social accounts connected to the workspace (sensitive credentials excluded).",
+  })
+  @ApiOkResponse({
+    description: "List of connected social accounts (no credentials).",
+  })
+  @ApiUnauthorizedResponse({ description: "Missing or invalid access token." })
   public async listSocialAccounts(
     @Param("workspaceslug") workspaceslug: string,
   ) {
@@ -53,6 +87,16 @@ export class SocialAccountController {
   }
 
   @Get("socialaccountid/:socialaccountid")
+  @ApiOperation({
+    summary: "Get a social account",
+    description:
+      "Returns a single social account connected to the workspace (sensitive credentials excluded).",
+  })
+  @ApiOkResponse({ description: "Social account details (no credentials)." })
+  @ApiNotFoundResponse({
+    description: "Social account not found for this workspace.",
+  })
+  @ApiUnauthorizedResponse({ description: "Missing or invalid access token." })
   public async getSocialAccount(
     @Param("workspaceslug") workspaceslug: string,
     @Param("socialaccountid") socialAccountId: string,
@@ -65,6 +109,17 @@ export class SocialAccountController {
   }
 
   @Patch("socialaccountid/:socialaccountid")
+  @ApiOperation({
+    summary: "Update a social account",
+    description:
+      "Updates the username and/or display name of a connected social account.",
+  })
+  @ApiOkResponse({ description: "Social account updated." })
+  @ApiBadRequestResponse({ description: "Invalid payload." })
+  @ApiNotFoundResponse({
+    description: "Social account not found for this workspace.",
+  })
+  @ApiUnauthorizedResponse({ description: "Missing or invalid access token." })
   public async updateSocialAccount(
     @Param("workspaceslug") workspaceslug: string,
     @Param("socialaccountid") socialAccountId: string,
@@ -79,6 +134,19 @@ export class SocialAccountController {
   }
 
   @Post("socialaccountid/:socialaccountid/refresh")
+  @ApiOperation({
+    summary: "Refresh social account credentials",
+    description:
+      "Renews the access token for the connected social account and returns the new token expiry.",
+  })
+  @ApiOkResponse({
+    description: "Credentials refreshed; new token expiry returned.",
+  })
+  @ApiBadRequestResponse({ description: "Unsupported provider." })
+  @ApiNotFoundResponse({
+    description: "Social account not found for this workspace.",
+  })
+  @ApiUnauthorizedResponse({ description: "Missing or invalid access token." })
   public async refreshSocialAccount(
     @Param("workspaceslug") workspaceslug: string,
     @Param("socialaccountid") socialAccountId: string,
@@ -91,6 +159,16 @@ export class SocialAccountController {
   }
 
   @Delete("socialaccountid/:socialaccountid")
+  @ApiOperation({
+    summary: "Disconnect a social account",
+    description:
+      "Revokes and deletes the connected social account from the workspace.",
+  })
+  @ApiOkResponse({ description: "Social account disconnected successfully." })
+  @ApiNotFoundResponse({
+    description: "Social account not found for this workspace.",
+  })
+  @ApiUnauthorizedResponse({ description: "Missing or invalid access token." })
   public async disconnectSocialAccount(
     @Param("workspaceslug") workspaceslug: string,
     @Param("socialaccountid") socialAccountId: string,
