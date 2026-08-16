@@ -1,5 +1,5 @@
 import { Controller, Get, HttpCode, HttpStatus } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { ApiTags, ApiOperation, ApiOkResponse } from "@nestjs/swagger";
 import { SystemService } from "./system.service";
 
 @ApiTags("System")
@@ -9,8 +9,15 @@ export class SystemController {
 
   @Get("health")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Overall application health" })
-  @ApiResponse({ status: 200, description: "Application health" })
+  @ApiOperation({
+    summary: "Overall application health",
+    description:
+      "Returns the liveness/health status of the API along with uptime and the state of its core dependencies.",
+  })
+  @ApiOkResponse({
+    description:
+      "Health check payload with API status, uptime, and dependency checks.",
+  })
   public health() {
     return this.systemService.getHealth();
   }
